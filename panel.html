@@ -1,0 +1,416 @@
+<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><title>Sera · Yalova Seçkin Tarım</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500&family=Bebas+Neue&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js"></script>
+<style>
+:root{--a:#c2410c;--as:rgba(194,65,12,.08);--bg:#f1f5f9;--p:#fff;--p2:#f8fafc;--b:#e2e8f0;--c:#111827;--cd:#374151;--cl:#6b7280;--g:#15803d;--gb:rgba(21,128,61,.08);--ge:rgba(21,128,61,.3);--r:#b91c1c;--rb:rgba(185,28,28,.07);--re:rgba(185,28,28,.25);--rr:14px}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--c);font-family:'Inter',sans-serif;min-height:100vh}
+header{position:sticky;top:0;z-index:100;height:52px;background:rgba(255,255,255,.97);border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;padding:0 16px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.ly{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.15em;color:var(--a)}.lt{font-size:.55rem;color:var(--cl);letter-spacing:.18em}
+.hr{display:flex;align-items:center;gap:8px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--r);transition:all .3s}.dot.on{background:var(--g);box-shadow:0 0 8px var(--g);animation:bl 2s infinite}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.4}}
+.st{font-size:.7rem;color:var(--cd);font-weight:600;font-family:'JetBrains Mono',monospace}
+.me{font-size:.55rem;padding:2px 7px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-weight:600;background:rgba(29,78,216,.1);border:1px solid rgba(29,78,216,.25);color:#1d4ed8}
+main{max-width:500px;margin:0 auto;padding:14px 12px 80px}
+.mp{display:none;align-items:center;gap:6px;padding:4px 10px 4px 7px;border-radius:20px;border:1.5px solid;font-size:.66rem;font-weight:600;margin-bottom:10px}
+.mp.oto{background:rgba(22,163,74,.07);border-color:rgba(22,163,74,.35);color:var(--g)}.mp.man{background:var(--rb);border-color:var(--re);color:var(--r)}
+.pd{width:7px;height:7px;border-radius:50%;flex-shrink:0}.mp.oto .pd{background:var(--g);animation:bl 2s infinite}.mp.man .pd{background:var(--r);animation:bl 1.2s infinite}
+.sep{display:flex;align-items:center;gap:8px;margin:4px 0 8px;font-size:.65rem;color:var(--cl);font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.sep::before,.sep::after{content:'';flex:1;height:1px;background:var(--b)}
+.btk{width:100%;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-size:.75rem;font-weight:600;padding:12px;border-radius:8px;background:var(--rb);border:1.5px solid var(--re);color:var(--r);margin-bottom:6px}
+.btk:active{transform:scale(.98)}
+.ks{display:flex;flex-direction:column;gap:10px}
+.k{background:var(--p);border:1px solid var(--b);border-radius:var(--rr);overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.k[data-h="aciyor"]{border-color:rgba(34,197,94,.4)}.k[data-h="kapaniyor"]{border-color:rgba(239,68,68,.35)}
+.kh{display:flex;align-items:center;gap:10px;padding:10px 14px 8px;background:var(--p2);border-bottom:1px solid var(--b)}
+.km{flex:1}.ka{font-size:.95rem;font-weight:700}.kp{font-size:.6rem;color:var(--cl);font-family:'JetBrains Mono',monospace;margin-top:1px}
+.kb{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:.6rem;font-weight:600;text-transform:uppercase;white-space:nowrap}
+.bd{background:rgba(87,83,78,.08);border:1px solid rgba(87,83,78,.2);color:var(--cd)}
+.ba{background:var(--gb);border:1px solid var(--ge);color:var(--g)}
+.bk{background:var(--rb);border:1px solid var(--re);color:var(--r)}
+.bdt{width:6px;height:6px;border-radius:50%}.ba .bdt{background:var(--g);animation:bl 1.8s infinite}.bk .bdt{background:var(--r);animation:bl 1.8s infinite}
+.ps{position:relative;width:100%;height:44px;overflow:hidden;border-bottom:1px solid var(--b);background:linear-gradient(180deg,#0f172a,#1e3a5f 40%,#2d6a4f 75%,#1a3a2a)}
+.si{position:absolute;inset:0;background:linear-gradient(180deg,rgba(253,224,71,.5),rgba(253,224,71,.12) 50%,transparent 80%);z-index:1;transition:opacity .3s}
+.sg{position:absolute;top:-16px;left:50%;transform:translateX(-50%);width:40px;height:40px;background:radial-gradient(circle,#fff,#fef08a 25%,#fbbf24 55%,transparent 80%);border-radius:50%;z-index:2;box-shadow:0 0 20px 10px rgba(253,224,71,.8);transition:opacity .3s}
+.sr{position:absolute;top:6px;left:0;right:0;height:2px;background:linear-gradient(90deg,#94a3b8,#64748b);z-index:3}
+.sp{position:absolute;top:12px;left:0;bottom:12px;z-index:4;background:repeating-linear-gradient(90deg,#e2e8f0 0,#e2e8f0 1px,#cbd5e1 1px,#cbd5e1 2px,#94a3b8 2px,#94a3b8 3px,#e2e8f0 3px,#e2e8f0 5px);border-right:1px solid #64748b;box-shadow:2px 0 5px rgba(0,0,0,.4)}
+.sz{position:absolute;bottom:0;left:0;right:0;height:8px;z-index:3;background:linear-gradient(180deg,#166534,#14532d);border-top:1px solid #15803d}
+.spz{position:absolute;top:50%;transform:translateY(-50%);left:8px;z-index:5;font-family:'Bebas Neue',sans-serif;font-size:.9rem;color:rgba(255,255,255,.85);text-shadow:0 0 6px rgba(0,0,0,.9)}
+.pb{padding:8px 14px 6px;border-bottom:1px solid var(--b)}
+.pl{font-size:.63rem;color:var(--cd);font-weight:600;text-transform:uppercase;margin-bottom:5px}
+.pr{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.bp{border:none;cursor:pointer;font-family:'Inter',sans-serif;font-size:.7rem;font-weight:600;padding:8px 4px;border-radius:7px;background:var(--as);border:1.5px solid rgba(194,65,12,.25);color:var(--a)}
+.bp:active{transform:scale(.93)}.bp.ak{background:rgba(180,83,9,.18);border-color:var(--a)}
+.mb{display:grid;grid-template-columns:1fr 1fr 1fr}
+.bm{border:none;cursor:pointer;font-family:'Inter',sans-serif;font-size:.72rem;font-weight:600;padding:13px 8px;display:flex;align-items:center;justify-content:center;gap:6px;position:relative}
+.bm::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:var(--b)}
+.bma{background:rgba(22,163,74,.07);color:var(--g);border-right:1px solid var(--b)}.bma:active{background:rgba(34,197,94,.2)}
+.bmd{background:rgba(234,88,12,.07);color:var(--a);border-right:1px solid var(--b)}.bmd:active{background:rgba(249,115,22,.2)}
+.bmk{background:var(--rb);color:var(--r)}.bmk:active{background:rgba(239,68,68,.2)}
+.bl2{margin-top:12px;background:var(--p);border:1px solid var(--b);border-radius:var(--rr);overflow:hidden}
+.bh{padding:11px 14px;background:var(--p2);border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.bhs{display:flex;align-items:center;gap:8px}
+.bi{width:24px;height:24px;border:1px solid var(--b);border-radius:5px;display:flex;align-items:center;justify-content:center}
+.bb{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--cd)}
+.bt{font-size:.6rem;color:#9a3412;transition:transform .3s}.bt.op{transform:rotate(180deg)}
+.bg{display:none;padding:12px 14px}.bg.op{display:block}
+.rs{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:8px 10px;background:var(--bg);border-radius:7px;border:1px solid var(--b)}
+.rss{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--a)}.re2{font-size:.58rem;color:#9a3412;flex:1}
+.fi{background:#fff;border:1px solid var(--b);border-radius:5px;color:var(--c);font-family:'JetBrains Mono',monospace;font-size:.7rem;padding:5px 7px;outline:none;width:42px;text-align:center}
+.fi:focus{border-color:var(--a)}.fs{background:#fff;border:1px solid var(--b);border-radius:5px;color:var(--c);font-family:'JetBrains Mono',monospace;font-size:.68rem;padding:5px 7px;outline:none}
+.br2{border:none;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.58rem;padding:5px 8px;border-radius:5px;background:var(--as);border:1px solid #9a3412;color:var(--a)}
+.nf{background:var(--bg);border:1px solid var(--b);border-radius:8px;padding:10px;margin-bottom:10px}
+.nb{font-size:.58rem;color:#9a3412;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.nsr{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap}
+.nel{font-size:.6rem;color:var(--cd);min-width:48px}
+.pc{display:flex;align-items:center;gap:3px;font-size:.6rem;cursor:pointer;padding:4px 7px;border:1px solid var(--b);border-radius:5px}
+.pc input{accent-color:var(--a);width:11px;height:11px}
+.be{border:none;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.62rem;padding:8px;border-radius:6px;background:var(--as);border:1px solid #9a3412;color:var(--a);width:100%;margin-top:4px}
+.zl{display:flex;flex-direction:column;gap:5px}
+.zi{background:#fff;border:1px solid var(--b);border-radius:7px;padding:8px 10px;display:flex;align-items:center;gap:8px}
+.zis{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--a);width:44px;flex-shrink:0}
+.zim{flex:1}.zii{font-size:.63rem;color:var(--c)}.zip{font-size:.56rem;color:#9a3412;margin-top:1px}
+.zir{display:flex;gap:4px}
+.bz{border:none;cursor:pointer;font-size:.58rem;padding:4px 7px;border-radius:5px;font-family:'JetBrains Mono',monospace}
+.bzt{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:var(--g)}.bzt.ps2{background:rgba(154,138,112,.08);border:1px solid rgba(154,138,112,.2);color:var(--cd)}
+.bzs{background:var(--rb);border:1px solid var(--re);color:var(--r)}
+.bz0{font-size:.63rem;color:var(--cd);text-align:center;padding:12px}
+.as2{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.ae{font-size:.63rem;color:var(--cd);flex:1}.ai{background:#fff;border:1px solid var(--b);border-radius:6px;color:var(--c);font-family:'JetBrains Mono',monospace;font-size:.78rem;padding:7px 10px;width:76px;text-align:center;outline:none}
+.ai:focus{border-color:var(--a)}.au{font-size:.58rem;color:#9a3412}
+.ba2{border:none;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.6rem;padding:7px 12px;border-radius:6px;background:var(--as);border:1px solid #9a3412;color:var(--a)}
+.aa{font-size:.57rem;color:var(--cd);line-height:1.6;margin-top:8px;padding:7px;background:var(--bg);border-radius:6px;border-left:2px solid var(--a)}
+.ms{display:flex;align-items:center;gap:8px;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--b)}
+.bmo{border:none;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.63rem;padding:8px 12px;border-radius:7px}
+.bmo-o{background:rgba(22,163,74,.1);border:2px solid rgba(22,163,74,.3);color:var(--g)}.bmo-o.ak{border-color:var(--g);box-shadow:0 0 0 3px rgba(22,163,74,.12)}
+.bmo-m{background:var(--rb);border:2px solid var(--re);color:var(--r)}.bmo-m.ak{border-color:var(--r);box-shadow:0 0 0 3px rgba(220,38,38,.1)}
+.mac{flex:1;font-size:.58rem;color:var(--cd)}
+.rt{width:100%;border-collapse:collapse;font-size:.6rem;margin-top:10px}
+.rt th{text-align:left;padding:0 6px 5px 0;color:#9a3412;border-bottom:1px solid var(--b)}
+.rt td{padding:5px 6px 5px 0;border-bottom:1px solid rgba(37,31,20,.06);color:var(--cd)}
+.rt tr:last-child td{border-bottom:none}
+.pc2{display:inline-block;background:var(--as);border:1px solid rgba(194,65,12,.2);color:var(--a);padding:1px 5px;border-radius:3px;font-size:.55rem}
+.rd{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.rbs{margin-top:12px;padding-top:12px;border-top:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.rbi{font-size:.57rem;color:var(--cd);line-height:1.5}
+.brb{border:none;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.6rem;padding:7px 12px;border-radius:7px;background:var(--rb);border:1.5px solid var(--re);color:var(--r);white-space:nowrap}
+.ro{display:none;margin-top:8px;padding:10px;background:var(--rb);border:1.5px solid var(--re);border-radius:8px;text-align:center}.ro.on{display:block}
+.rot{font-size:.62rem;color:var(--r);margin-bottom:8px}.rob{display:flex;gap:8px;justify-content:center}
+.roe{border:none;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.63rem;font-weight:600;padding:7px 18px;border-radius:6px;background:var(--r);color:#fff}
+.roi{border:1.5px solid var(--b);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.63rem;padding:7px 14px;border-radius:6px;background:#fff;color:var(--cd)}
+.nt{position:fixed;top:62px;left:50%;transform:translateX(-50%) translateY(-14px);background:#fff;border:1px solid var(--b);box-shadow:0 4px 20px rgba(0,0,0,.12);padding:9px 16px;border-radius:6px;font-size:.66rem;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap;z-index:999;display:flex;align-items:center;gap:7px}
+.nt.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.nd{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+footer{text-align:center;padding:18px 16px 30px;border-top:1px solid var(--b);margin-top:16px;font-size:.62rem;color:var(--cl)}
+</style></head><body>
+<header>
+  <div><div class="ly">YALOVA</div><div class="lt">SEÇKİN TARIM</div></div>
+  <div class="hr"><span class="me">MQTT</span><div class="dot" id="dot"></div><div class="st" id="st">--:--:--</div></div>
+</header>
+<main>
+<div class="mp oto" id="mp"><div class="pd"></div><span id="mpt">SİSTEM UZAKTAN KONTROL EDİLİYOR</span></div>
+<div class="sep">Toplu Kontrol</div>
+<button class="btk" onclick="hK()">▼ Tümü Kapat</button>
+<div class="sep" style="margin-top:6px">Perde Kontrolü</div>
+<div class="ks" id="ks"></div>
+<div class="bl2">
+  <div class="bh" onclick="tB('z')">
+    <div class="bhs"><div class="bi"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9a3412" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><div class="bb">Otomatik Zamanlayıcı</div></div>
+    <div style="display:flex;align-items:center;gap:8px"><span style="font-size:.6rem;color:var(--g)" id="zo">—</span><div class="bt" id="zt">▼</div></div>
+  </div>
+  <div class="bg" id="z-g">
+    <div class="rs">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9a3412" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      <div class="re2">RTC Saati</div><div class="rss" id="rtcg">--:--</div>
+      <input class="fi" type="number" id="rsa" placeholder="SS" min="0" max="23">
+      <span style="color:#9a3412">:</span>
+      <input class="fi" type="number" id="rdk" placeholder="DD" min="0" max="59">
+      <button class="br2" onclick="rA()">AYARLA</button>
+    </div>
+    <div class="nf">
+      <div class="nb">Yeni Zamanlayıcı Ekle</div>
+      <div class="nsr"><div class="nel">Saat</div><input class="fi" type="number" id="fs" value="20" min="0" max="23"><span style="color:#9a3412">:</span><input class="fi" type="number" id="fd" value="0" min="0" max="59"></div>
+      <div class="nsr"><div class="nel">İşlem</div>
+        <select class="fs2" id="fi2" onchange="iD()"><option value="kapat">Kapat (%100)</option><option value="ac">Aç (%0)</option><option value="hedef">Konuma Git</option></select>
+        <span id="fhw" style="display:none;align-items:center;gap:4px"><span style="font-size:.6rem;color:var(--cd)">%</span><input class="fi" type="number" id="fhp" value="50" min="0" max="100" style="width:48px"></span>
+      </div>
+      <div class="nsr"><div class="nel">Perdeler</div>
+        <div style="display:flex;gap:4px">
+          <label class="pc"><input type="checkbox" id="fp1" checked> A1</label>
+          <label class="pc"><input type="checkbox" id="fp2" checked> A2</label>
+          <label class="pc"><input type="checkbox" id="fp3" checked> A3</label>
+        </div>
+      </div>
+      <button class="be" onclick="zE()">+ EKLE</button>
+    </div>
+    <div class="zl" id="zl"><div class="bz0">Henüz zamanlayıcı yok</div></div>
+  </div>
+</div>
+<div class="bl2">
+  <div class="bh" onclick="tB('a')">
+    <div class="bhs"><div class="bi"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9a3412" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></div><div class="bb">Sistem Ayarları</div></div>
+    <div class="bt" id="at">▼</div>
+  </div>
+  <div class="bg" id="a-g">
+    <div class="ms">
+      <div class="mac" id="mac">SQ6 enerjili · Pico kontrolde</div>
+      <button class="bmo bmo-o ak" id="bo" onclick="mD('otomasyon')">OTOMATİK</button>
+      <button class="bmo bmo-m" id="bm2" onclick="mD('manuel')">MANUEL</button>
+    </div>
+    <div class="as2">
+      <div class="ae">Tam Açılış/Kapanış Süresi</div>
+      <input class="ai" type="number" id="si" value="30" min="5" max="500">
+      <span class="au">SNY</span>
+      <button class="ba2" onclick="sK()">KAYDET</button>
+    </div>
+    <div class="aa">Perdenin %0'dan %100'e hareket süresi. Geçerli aralık: 5–500 sn.</div>
+    <table class="rt">
+      <thead><tr><th>Perde</th><th>İşlem</th><th>Röle</th><th>Pin</th><th>Durum</th></tr></thead>
+      <tbody>
+        <tr><td>A1</td><td>Aç</td><td><span class="pc2">Q0</span></td><td>GP14</td><td><span class="rd" id="r1a"></span><span id="t1a">—</span></td></tr>
+        <tr><td>A1</td><td>Kapat</td><td><span class="pc2">Q1</span></td><td>GP15</td><td><span class="rd" id="r1k"></span><span id="t1k">—</span></td></tr>
+        <tr><td>A2</td><td>Aç</td><td><span class="pc2">Q2</span></td><td>GP18</td><td><span class="rd" id="r2a"></span><span id="t2a">—</span></td></tr>
+        <tr><td>A2</td><td>Kapat</td><td><span class="pc2">Q3</span></td><td>GP19</td><td><span class="rd" id="r2k"></span><span id="t2k">—</span></td></tr>
+        <tr><td>A3</td><td>Aç</td><td><span class="pc2">Q4</span></td><td>GP22</td><td><span class="rd" id="r3a"></span><span id="t3a">—</span></td></tr>
+        <tr><td>A3</td><td>Kapat</td><td><span class="pc2">SQ5</span></td><td>GP13</td><td><span class="rd" id="r3k"></span><span id="t3k">—</span></td></tr>
+      </tbody>
+    </table>
+    <div class="rbs">
+      <div class="rbi"><b style="color:var(--r)">⚠ Yeniden Başlatma</b><br>Wi-Fi ~15 sn kesilir.</div>
+      <button class="brb" onclick="rO()">↺ YENİDEN BAŞLAT</button>
+    </div>
+    <div class="ro" id="ro">
+      <div class="rot">⚠ SİSTEM YENİDEN BAŞLATILACAK</div>
+      <div class="rob"><button class="roe" onclick="rY()">EVET</button><button class="roi" onclick="rI()">İPTAL</button></div>
+    </div>
+  </div>
+</div>
+</main>
+<footer>© 2025 Hakan Göllü tarafından hazırlanmıştır. Kopyalanamaz. Çoğaltılamaz.</footer>
+<div class="nt" id="nt"><div class="nd" id="nd"></div><span id="ntx"></span></div>
+<script>
+const MH='c7b2ca6a3aab446483a5c57a9408ee22.s1.eu.hivemq.cloud',MP=8884,MU='GOLLU',MW='Hg121232=',MC='p_'+Math.random().toString(16).slice(2,10);
+const D={P1:{p:100,h:'dur',hp:100,ht:0},P2:{p:100,h:'dur',hp:100,ht:0},P3:{p:100,h:'dur',hp:100,ht:0},s:30,o:true};
+let ZD={z:[],r:null},OM=true,mc=null,mb=false;
+function sG(){const n=new Date();document.getElementById('st').textContent=[n.getHours(),n.getMinutes(),n.getSeconds()].map(v=>String(v).padStart(2,'0')).join(':');}
+setInterval(sG,1000);sG();
+const KS=[{id:'P1',n:'Sera A1',p:'AÇ: Q0·GP14 | KAP: Q1·GP15'},{id:'P2',n:'Sera A2',p:'AÇ: Q2·GP18 | KAP: Q3·GP19'},{id:'P3',n:'Sera A3',p:'AÇ: Q4·GP22 | KAP: SQ5·GP13'}];
+document.getElementById('ks').innerHTML=KS.map(k=>`
+<div class="k" id="k-${k.id}" data-h="dur">
+  <div class="kh"><div class="km"><div class="ka">${k.n}</div><div class="kp">${k.p}</div></div>
+  <div class="kb bd" id="b-${k.id}"><div class="bdt"></div><span id="bt-${k.id}">DURDU</span></div></div>
+  <div class="ps"><div class="si" id="si-${k.id}"></div><div class="sg" id="sg-${k.id}"></div><div class="sr"></div>
+  <div class="sp" id="sp-${k.id}" style="width:100%"></div><div class="sz"></div>
+  <div class="spz"><span id="pd-${k.id}">100</span>%</div></div>
+  <div class="pb"><div class="pl">Hızlı Konum</div>
+  <div class="pr">${[0,25,50,75,100].map(v=>`<button class="bp" onclick="hG('${k.id}',${v})">%${v}</button>`).join('')}</div></div>
+  <div class="mb">
+    <button class="bm bma" onclick="mn('${k.id}','ac')">▲ Aç</button>
+    <button class="bm bmd" onclick="dr('${k.id}')">■ Dur</button>
+    <button class="bm bmk" onclick="mn('${k.id}','kapat')">▼ Kapat</button>
+  </div>
+</div>`).join('');
+function mC(){mc=mqtt.connect('wss://'+MH+':'+MP+'/mqtt',{username:MU,password:MW,clientId:MC,clean:true,reconnectPeriod:5000});
+mc.on('connect',()=>{mb=true;document.getElementById('dot').classList.add('on');document.getElementById('mp').style.display='inline-flex';nt('MQTT bağlandı','g');mc.subscribe('anka/sistem/durum');mc.subscribe('anka/perde/+/konum');mc.subscribe('anka/perde/+/hareket');});
+mc.on('message',(t,m)=>{const s=m.toString();
+if(t==='anka/sistem/durum'){try{const d=JSON.parse(s);if(d.P1!==undefined)D.P1.p=d.P1;if(d.P2!==undefined)D.P2.p=d.P2;if(d.P3!==undefined)D.P3.p=d.P3;if(d.otomasyon!==undefined){OM=d.otomasyon;mR();}if(d.tam_sure!==undefined){D.s=d.tam_sure;const e=document.getElementById('si');if(!e.matches(':focus'))e.value=d.tam_sure;}if(d.zamanlar!==undefined){ZD.z=d.zamanlar;zR();}if(d.rtc){ZD.r=d.rtc;document.getElementById('rtcg').textContent=String(d.rtc.saat).padStart(2,'0')+':'+String(d.rtc.dakika).padStart(2,'0');}render();}catch(e){}}
+if(t.includes('/konum')){const k=t.split('/')[2];if(D[k]){D[k].p=pars"""
+AnKA GLC v2.0 - Sera Isı Perdesi Kontrol Sistemi
+Yalova Seçkin Tarım · MiRDEV CE/250812
+%0=AÇIK  %100=KAPALI
+"""
+
+import wifi, socketpool, time, digitalio, busio, board
+import json, microcontroller, os, ipaddress, ssl
+import adafruit_minimqtt.adafruit_minimqtt as MQTT
+
+WIFI_SSID      = "YALOVA SECKİN FİDE"
+WIFI_PASS      = "Sf8930Sf"
+STATIC_IP      = "192.168.1.99"
+STATIC_SUBNET  = "255.255.255.0"
+STATIC_GATEWAY = "192.168.1.1"
+STATIC_DNS     = "8.8.8.8"
+
+MQTT_BROKER  = "c7b2ca6a3aab446483a5c57a9408ee22.s1.eu.hivemq.cloud"
+MQTT_PORT    = 8883
+MQTT_USER    = "GOLLU"
+MQTT_PASS    = "Hg121232="
+MQTT_CLIENT  = "anka_glc_picob"
+TOPIC_DURUM  = "anka/sistem/durum"
+TOPIC_AYAR   = "anka/sistem/ayar"
+TOPIC_P1_KMT = "anka/perde/P1/komut"
+TOPIC_P2_KMT = "anka/perde/P2/komut"
+TOPIC_P3_KMT = "anka/perde/P3/komut"
+TOPIC_HEPSI  = "anka/perde/hepsi/komut"
+
+TAM_SURE      = 30.0
+mqtt_client   = None
+mqtt_bagli    = False
+son_yayim_t   = 0
+son_baglan_t  = 0
+YAYIM_ARALIK  = 2.0
+BAGLAN_ARALIK = 15.0
+
+# RTC
+try:
+    i2c = busio.I2C(board.GP21, board.GP20)
+    RTC_OK = True
+    print("RTC baglandi")
+except Exception as e:
+    i2c = None; RTC_OK = False
+    print("RTC YOK:", e)
+
+def rtc_oku():
+    if not RTC_OK or i2c is None: return None
+    try:
+        while not i2c.try_lock(): time.sleep(0.005)
+        try:
+            i2c.writeto(0x68, bytes([0]))
+            buf = bytearray(3)
+            i2c.readfrom_into(0x68, buf)
+        finally:
+            i2c.unlock()
+        return (((buf[2]>>4)&0x3)*10+(buf[2]&0xF), ((buf[1]>>4)&0xF)*10+(buf[1]&0xF))
+    except Exception:
+        return None
+
+def rtc_ayarla(sa, dk, sn=0):
+    if not RTC_OK or i2c is None: return
+    try:
+        def bcd(v): return ((v//10)<<4)|(v%10)
+        while not i2c.try_lock(): time.sleep(0.005)
+        try: i2c.writeto(0x68, bytes([0,bcd(sn),bcd(dk),bcd(sa),1,1,1,1]))
+        finally: i2c.unlock()
+        print("RTC:", sa, ":", dk)
+    except Exception as e:
+        print("RTC hatasi:", e)
+
+def ntp_saat_guncelle():
+    """NTP sunucusundan saati çekip RTC'ye yaz (kütüphanesiz)."""
+    try:
+        import struct
+        pool2 = socketpool.SocketPool(wifi.radio)
+        # NTP paketi (48 byte)
+        pkt = bytearray(48)
+        pkt[0] = 0x1B  # LI=0, VN=3, Mode=3 (client)
+        addr = pool2.getaddrinfo("pool.ntp.org", 123)[0][4]
+        sock = pool2.socket(pool2.AF_INET, pool2.SOCK_DGRAM)
+        sock.settimeout(5)
+        sock.sendto(pkt, addr)
+        buf = bytearray(48)
+        sock.recv_into(buf)
+        sock.close()
+        # Transmit timestamp (byte 40-43)
+        t = struct.unpack("!I", buf[40:44])[0]
+        # NTP epoch 1900, Unix epoch 1970 farkı
+        t -= 2208988800
+        # Türkiye UTC+3
+        t += 3 * 3600
+        # Saat ve dakika hesapla
+        sa = (t % 86400) // 3600
+        dk = (t % 3600) // 60
+        sn = t % 60
+        rtc_ayarla(int(sa), int(dk), int(sn))
+        print("NTP saat guncellendi:", int(sa), ":", int(dk))
+        return True
+    except Exception as e:
+        print("NTP hatasi:", e)
+        return False
+
+son_ntp_t = 0
+NTP_ARALIK = 3600
+
+zamanlar = []
+_son_tetik = {}
+otomasyon_aktif = True
+
+def zamanla_kontrol():
+    rtc = rtc_oku()
+    if rtc is None: return
+    sa, dk = rtc
+    for i, z in enumerate(zamanlar):
+        if not z["aktif"]: continue
+        if z["saat"]==sa and z["dakika"]==dk:
+            if _son_tetik.get(i)==(sa,dk): continue
+            _son_tetik[i]=(sa,dk)
+            print("Zamanlayici", i, "tetiklendi")
+            if not otomasyon_aktif: continue
+            for no in z["perdeler"]:
+                if z["islem"]=="kapat": perde_hedefe_git(no,100)
+                elif z["islem"]=="ac": perde_hedefe_git(no,0)
+                elif z["islem"]=="hedef": perde_hedefe_git(no,z.get("hedef_pct",100))
+
+# DONANIM
+# Q0(GP14)=KESİCİ  Q1(GP15)=P1Ac  Q2(GP18)=P1Kap
+# Q3(GP19)=P2Ac    Q4(GP22)=P2Kap SQ5(GP13)=P3Ac  SQ6(GP12)=P3Kap
+PERDE_PINLER = {
+    "P1_AC":board.GP15,"P1_KAP":board.GP18,
+    "P2_AC":board.GP19,"P2_KAP":board.GP22,
+    "P3_AC":board.GP13,"P3_KAP":board.GP12,
+}
+roleler = {}
+for ad, pin in PERDE_PINLER.items():
+    dio = digitalio.DigitalInOut(pin)
+    dio.direction = digitalio.Direction.OUTPUT
+    dio.value = False
+    roleler[ad] = dio
+    print(ad, "hazir")
+
+kesici = digitalio.DigitalInOut(board.GP14)  # Q0 = Kesici rölesi
+kesici.direction = digitalio.Direction.OUTPUT
+kesici.value = False  # Başlangıçta kesici kapalı (NC = kumanda aktif)
+
+ledler = []
+for pin in [board.GP2,board.GP3,board.GP4,board.GP5,board.GP6,board.GP7]:
+    dio = digitalio.DigitalInOut(pin)
+    dio.direction = digitalio.Direction.OUTPUT
+    dio.value = False
+    ledler.append(dio)
+
+def ledleri_yak(d):
+    for led in ledler: led.value = d
+
+def izin_role_guncelle(): kesici.value = not otomasyon_aktif
+
+# FLASH
+POZ_DOSYA = "poz_kayit.json"
+KAPANMA_EKSTRA = 300.0  # %100'e ulaşınca ekstra kapanma süresi
+
+perde = {
+    "P1":{"poz":100.0,"hareket":"dur","hedef":None,"bas_poz":100.0,"bas_t":0.0,"ekstra_t":None},
+    "P2":{"poz":100.0,"hareket":"dur","hedef":None,"bas_poz":100.0,"bas_t":0.0,"ekstra_t":None},
+    "P3":{"poz":100.0,"hareket":"dur","hedef":None,"bas_poz":100.0,"bas_t":0.0,"ekstra_t":None},
+}
+
+def poz_kaydet():
+    try:
+        with open(POZ_DOSYA,"w") as f:
+            json.dump({"P1":round(perde["P1"]["poz"],1),"P2":round(perde["P2"]["poz"],1),"P3":round(perde["P3"]["poz"],1),"tam_sure":TAM_SURE},f)
+    except Exception as e: print("Kayit hatasi:", e)
+
+def poz_yukle():
+    global TAM_SURE
+    try:
+        with open(POZ_DOSYA,"r") as f: k=json.load(f)
+        perde["P1"]["poz"]=float(k.get("P1",100.0))
+        perde["P2"]["poz"]=float(k.get("P2",100.0))
+        perde["P3"]["poz"]=float(k.get("P3",100.0))
+        TAM_SURE=float(k.get("tam_sure",30.0))
+        print("Pozisyonlar yuklendi:", k)
+    except Exception as e:
+        print("Poz yukle hatasi (guvenli %100):", e)
+
+# PERDE
+def role_ac(no):
+    roleler["P"+str(no)+"_KAP"].value=False; time.sleep(0.3)
+    roleler["P"+str(no)+"_AC"].value=True
+def role_kapat(no):
+    roleler["P"+str(no)+"_AC"].value=False; time.sleep(0.3)
+    roleler["P"+str(no)+"_KAP"].value=True
+def role_dur(no):
+    roleler["P"+str(no)+"_AC"].value=False
+    roleler["P"+str(no)+"_KAP"].value=False
+
+def perde_hedefe_git(no, hedef_pct):
+    hedef_pct=max(0,min(100,hedef_
